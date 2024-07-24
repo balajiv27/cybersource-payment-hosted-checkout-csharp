@@ -1,0 +1,15 @@
+﻿@model Dictionary<string, string>
+
+<form id="cybersourceForm" method="post" action="https://testsecureacceptance.cybersource.com/pay">
+    @foreach (var parameter in Model)
+    {
+        <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
+    }
+    <noscript>
+        <input type="submit" value="Submit" />
+    </noscript>
+</form>
+
+<script>
+    document.getElementById("cybersourceForm").submit();
+</script>

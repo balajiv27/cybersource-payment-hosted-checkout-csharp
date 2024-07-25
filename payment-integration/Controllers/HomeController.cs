@@ -37,8 +37,8 @@ namespace payment_integration.Controllers
         {
             var parameters = new Dictionary<string, string>
             {
-                { "access_key", "27b093adf2d3332eaadec751362393d1" },
-                { "profile_id", "CFBF282F-BB79-4F9F-9D64-6F34E916769C" },
+                { "access_key", "1055e19f0b0e3c8a8091d6161d89d408" },
+                { "profile_id", "20496836-60A9-43F9-8568-5466F6D448E1" },
                 { "transaction_uuid", Guid.NewGuid().ToString() },
                 { "signed_field_names", "access_key,profile_id,transaction_uuid,signed_field_names,unsigned_field_names,signed_date_time,locale,transaction_type,reference_number,amount,currency" },
                 { "unsigned_field_names", "" },
@@ -46,33 +46,46 @@ namespace payment_integration.Controllers
                 { "locale", "en" },
                 { "transaction_type", "sale" },
                 { "reference_number", "123456789" }, // Ensure this is unique for each transaction
-                { "amount", "100.00" },
-                { "currency", "USD" }
+                { "amount", "10.00" },
+                { "currency", "USD" },
+                {"submit","Submit" }
             };
 
             // Generate the signature
-            string signature = Sign(parameters, "61a516f7af2240849620108b82342a482086cf174df44c4a878417c4f188fe48f6b73ebfaa2f4715b4c7df53de63743e49efa500ca904740ba570efc3dcb1088e7f405c982f24a4087aeaea5888e7ab354de219805b047eb96e8c1196675fbba911f5d01eb2d4fa7980264d11cc575749cea2e3315bf4b71a87227548f5bc1bb");
+            string signature = Sign(parameters, "5ef065aba29d404bb0afbfadbe8d889105fc31d5716f46cf89e7c24fa629b373b559b201dd084fcba57862cd67ad24d1e37ef46df1ba446bb8151f90940d97172834fcec2fb940d1aedba8662c2b501af80bfa3609cb4435ac988866cf6c955758607987a86744f99175527f94a9ee635702a8de89284a7581d9ec91062f518c");
             parameters.Add("signature", signature);
 
-            // Render the view with the parameters to post to CyberSource
             return View("SecureAcceptanceForm", parameters);
         }
 
-        private string Sign(Dictionary<string, string> data, string secretKey)
+        public static string Sign(IDictionary<string, string> paramsArray, string secret)
         {
-            var sortedData = new SortedDictionary<string, string>(data);
-            var signingString = new StringBuilder();
-            foreach (var item in sortedData)
+            return Sign(BuildDataToSign(paramsArray), secret);
+        }
+
+        private static string Sign(string data, string secretKey)
+        {
+            UTF8Encoding encoding = new UTF8Encoding();
+            byte[] keyByte = encoding.GetBytes(secretKey);
+
+            using (HMACSHA256 hmacsha256 = new HMACSHA256(keyByte))
             {
-                signingString.Append(item.Key).Append("=").Append(item.Value).Append(",");
+                byte[] messageBytes = encoding.GetBytes(data);
+                return Convert.ToBase64String(hmacsha256.ComputeHash(messageBytes));
+            }
+        }
+
+        private static string BuildDataToSign(IDictionary<string, string> paramsArray)
+        {
+            string[] signedFieldNames = paramsArray["signed_field_names"].Split(',');
+            IList<string> dataToSign = new List<string>();
+
+            foreach (string signedFieldName in signedFieldNames)
+            {
+                dataToSign.Add(signedFieldName + "=" + paramsArray[signedFieldName]);
             }
 
-            signingString.Length--; // Remove the last comma
-            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey)))
-            {
-                var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(signingString.ToString()));
-                return Convert.ToBase64String(hash);
-            }
+            return string.Join(",", dataToSign);
         }
     }
 }

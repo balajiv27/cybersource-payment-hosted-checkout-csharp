@@ -3,13 +3,16 @@
 <form id="cybersourceForm" method="post" action="https://testsecureacceptance.cybersource.com/pay">
     @foreach (var parameter in Model)
     {
-        <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
+        <input type="hidden" id="@parameter.Key" name="@parameter.Key" value="@parameter.Value" />
     }
-    <noscript>
-        <input type="submit" value="Submit" />
-    </noscript>
+    
+        <input type="submit" id="submit" value="Submit" />
+    
 </form>
 
 <script>
-    document.getElementById("cybersourceForm").submit();
+     // document.getElementById("cybersourceForm").submit();
 </script>
+
+
+
